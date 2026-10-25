@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Student dashboard</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+:root{--bg:#eef2f7;--surf:#fff;--ink:#14213d;--mute:#5d6b85;--line:#d9e0ec;--acc:#2f5bea;--acc-ink:#fff;--good:#1a9a72;--warn:#e4572e;--track:#e4e9f2;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1626;--surf:#18223a;--ink:#e8edf8;--mute:#9aa8c4;--line:#27334f;--acc:#6f8cff;--acc-ink:#0f1626;--good:#3cc79a;--warn:#ff7a55;--track:#26314d}}
+:root[data-theme="dark"]{--bg:#0f1626;--surf:#18223a;--ink:#e8edf8;--mute:#9aa8c4;--line:#27334f;--acc:#6f8cff;--acc-ink:#0f1626;--good:#3cc79a;--warn:#ff7a55;--track:#26314d}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.5 "Instrument Sans",system-ui,sans-serif}
+.wrap{max-width:1040px;margin:0 auto;padding:28px 18px 48px}
+h1,h2{font-family:"Bricolage Grotesque","Instrument Sans",system-ui,sans-serif;margin:0}
+h1{font-size:34px;line-height:1.1;font-weight:700}
+h2{font-size:19px;font-weight:700;margin-bottom:12px}
+.top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.date{color:var(--mute)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);background:var(--ink);color:var(--bg);border-radius:14px;margin-bottom:20px}
+.stat{padding:16px 18px;border-left:1px solid rgba(255,255,255,.18)}
+.stat:first-child{border-left:0}
+.stat b{display:block;font:700 30px/1.1 "Bricolage Grotesque",system-ui,sans-serif}
+.stat span{font-size:13px;opacity:.75}
+.grid{display:grid;grid-template-columns:1.35fr 1fr;gap:20px}
+.col{display:flex;flex-direction:column;gap:20px;min-width:0}
+section{background:var(--surf);border:1px solid var(--line);border-radius:12px;padding:18px}
+.add{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+input,select,button{font:inherit;color:var(--ink)}
+input,select{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-width:0}
+.add input[type=text]{flex:1 1 160px}
+button{cursor:pointer;border:0;border-radius:8px;padding:8px 14px;background:var(--acc);color:var(--acc-ink);font-weight:600}
+button.ghost{background:transparent;color:var(--mute);padding:4px 8px;font-weight:500}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.task{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.task input{width:18px;height:18px;accent-color:var(--acc);flex:none}
+.task .m{flex:1;min-width:0}
+.task .t{overflow-wrap:anywhere}
+.task.done .t{text-decoration:line-through;color:var(--mute)}
+.sub{font-size:13px;color:var(--mute)}
+.late{color:var(--warn);font-weight:600}
+.course{padding:11px 0;border-top:1px solid var(--line)}
+.crow{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.crow input{width:72px;text-align:right}
+.bar{height:8px;background:var(--track);border-radius:4px;margin-top:8px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:4px}
+.empty{color:var(--mute);padding:10px 0}
+.cls{display:flex;gap:12px;padding:9px 0;border-top:1px solid var(--line)}
+.cls time{width:84px;flex:none;color:var(--mute)}
+svg text{fill:var(--mute);font-size:11px;font-family:inherit}
+.hrs{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+@media (max-width:760px){.grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}.stat:nth-child(3){border-left:0}.stat:nth-child(n+3){border-top:1px solid rgba(255,255,255,.18)}h1{font-size:28px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div><h1>Student dashboard</h1><div class="date" id="date"></div></div>
+  </div>
+  <div class="stats" id="stats"></div>
+  <div class="grid">
+    <div class="col">
+      <section>
+        <h2>Tasks</h2>
+        <div class="add">
+          <input type="text" id="tt" placeholder="Add a task" aria-label="Task name">
+          <select id="tc" aria-label="Course"></select>
+          <input type="date" id="td" aria-label="Due date">
+          <button id="ta">Add task</button>
+        </div>
+        <div id="tasks"></div>
+      </section>
+      <section>
+        <h2>Courses and scores</h2>
+        <div id="courses"></div>
+      </section>
+    </div>
+    <div class="col">
+      <section>
+        <h2>Study hours this week</h2>
+        <svg id="chart" viewBox="0 0 300 140" width="100%" role="img" aria-label="Study hours per day this week"></svg>
+        <div class="hrs"><span class="sub" id="hnote"></span><button id="plus">Log 1 hour today</button></div>
+      </section>
+      <section>
+        <h2>Today’s classes</h2>
+        <div id="cls"></div>
+      </section>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+var DAY=864e5,now=new Date();now.setHours(0,0,0,0);
+function iso(d){var m=d.getMonth()+1,x=d.getDate();return d.getFullYear()+'-'+(m<10?'0':'')+m+'-'+(x<10?'0':'')+x}
+function plus(n){return iso(new Date(now.getTime()+n*DAY))}
+var S={courses:[{n:'Machine Learning',c:4,s:82},{n:'Data Structures',c:4,s:76},{n:'Database Systems',c:3,s:88},{n:'Computer Networks',c:3,s:64},{n:'Probability and Statistics',c:3,s:71}],
+tasks:[{t:'Finish assignment 3',co:'Machine Learning',d:plus(2),x:false},{t:'Revise trees and graphs',co:'Data Structures',d:plus(4),x:false},{t:'Lab record submission',co:'Database Systems',d:plus(-1),x:false},{t:'Read chapter 5',co:'Computer Networks',d:plus(7),x:true}],
+hours:[2,3.5,1,4,2.5,0,1.5]};
+try{var raw=localStorage.getItem('student-dash-v1');if(raw){var p=JSON.parse(raw);if(p&&p.courses&&p.tasks&&p.hours&&p.hours.length===7)S=p}}catch(e){}
+function save(){try{localStorage.setItem('student-dash-v1',JSON.stringify(S))}catch(e){}}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function $(i){return document.getElementById(i)}
+var ti=(now.getDay()+6)%7;
+$('date').textContent=now.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+function avg(){var w=0,t=0;S.courses.forEach(function(c){w+=c.s*c.c;t+=c.c});return t?w/t:0}
+function dueLabel(d){var n=Math.round((new Date(d+'T00:00:00')-now)/DAY);if(isNaN(n))return{t:'No due date',l:false};if(n<0)return{t:'Overdue by '+(-n)+(n===-1?' day':' days'),l:true};if(n===0)return{t:'Due today',l:true};if(n===1)return{t:'Due tomorrow',l:false};return{t:'Due in '+n+' days',l:false}}
+
+function stats(){
+  var open=S.tasks.filter(function(t){return!t.x}),tot=S.hours.reduce(function(a,b){return a+b},0);
+  var nx=open.filter(function(t){return t.d}).sort(function(a,b){return a.d<b.d?-1:1})[0];
+  var cells=[[avg().toFixed(1)+'%','Weighted average score'],[open.length,'Open tasks'],[tot%1?tot.toFixed(1):tot,'Study hours this week'],[nx?dueLabel(nx.d).t.replace('Due ',''):'None','Next deadline']];
+  $('stats').innerHTML=cells.map(function(c){return'<div class="stat"><b>'+esc(c[0])+'</b><span>'+c[1]+'</span></div>'}).join('');
+}
+function tasks(){
+  var list=S.tasks.map(function(t,i){return{t:t,i:i}}).sort(function(a,b){return a.t.x-b.t.x||(a.t.d<b.t.d?-1:1)});
+  $('tasks').innerHTML=list.length?list.map(function(o){var t=o.t,dl=t.d?dueLabel(t.d):{t:'',l:false};
+    return'<div class="task'+(t.x?' done':'')+'"><input type="checkbox" data-k="'+o.i+'"'+(t.x?' checked':'')+' aria-label="Mark done"><div class="m"><div class="t">'+esc(t.t)+'</div><div class="sub">'+esc(t.co)+(dl.t?' · <span class="'+(dl.l&&!t.x?'late':'')+'">'+dl.t+'</span>':'')+'</div></div><button class="ghost" data-r="'+o.i+'" aria-label="Remove task">Remove</button></div>'}).join(''):'<div class="empty">No tasks yet. Add your first one above.</div>';
+}
+function courses(){
+  $('courses').innerHTML=S.courses.map(function(c,i){var col=c.s>=80?'var(--good)':c.s>=65?'var(--acc)':'var(--warn)';
+    return'<div class="course"><div class="crow"><div>'+esc(c.n)+'<div class="sub">'+c.c+' credits</div></div><label class="sub">Score <input type="number" min="0" max="100" value="'+c.s+'" data-s="'+i+'" aria-label="Score for '+esc(c.n)+'"> %</label></div><div class="bar"><i style="width:'+c.s+'%;background:'+col+'"></i></div></div>'}).join('');
+  $('tc').innerHTML=S.courses.map(function(c){return'<option>'+esc(c.n)+'</option>'}).join('');
+}
+function chart(){
+  var L=['M','T','W','T','F','S','S'],mx=Math.max(4,Math.max.apply(null,S.hours)),h=100,out='';
+  S.hours.forEach(function(v,i){var bh=Math.round(v/mx*h),x=14+i*41;
+    out+='<rect x="'+x+'" y="'+(h+8-bh)+'" width="28" height="'+Math.max(bh,2)+'" rx="4" fill="'+(i===ti?'var(--acc)':'var(--track)')+'"/><text x="'+(x+14)+'" y="134" text-anchor="middle">'+L[i]+'</text>'+(v?'<text x="'+(x+14)+'" y="'+(h+3-bh)+'" text-anchor="middle">'+v+'</text>':'');});
+  $('chart').innerHTML=out;
+  $('hnote').textContent='Today: '+S.hours[ti]+' h';
+}
+function cls(){
+  var c=[['9:00 am','Machine Learning','Room 204'],['11:00 am','Database Systems','Lab 3'],['1:30 pm','Data Structures','Room 118'],['3:30 pm','Probability and Statistics','Room 210']];
+  $('cls').innerHTML=c.map(function(r){return'<div class="cls"><time>'+r[0]+'</time><div>'+r[1]+'<div class="sub">'+r[2]+'</div></div></div>'}).join('');
+}
+function all(){stats();tasks();courses();chart();save()}
+
+$('tasks').addEventListener('click',function(e){var r=e.target.getAttribute('data-r');if(r!==null){S.tasks.splice(+r,1);all()}});
+$('tasks').addEventListener('change',function(e){var k=e.target.getAttribute('data-k');if(k!==null){S.tasks[+k].x=e.target.checked;all()}});
+$('courses').addEventListener('input',function(e){var k=e.target.getAttribute('data-s');if(k===null)return;var v=parseFloat(e.target.value);if(isNaN(v))return;S.courses[+k].s=Math.max(0,Math.min(100,v));stats();save();
+  var bar=e.target.closest('.course').querySelector('.bar i'),s=S.courses[+k].s;bar.style.width=s+'%';bar.style.background=s>=80?'var(--good)':s>=65?'var(--acc)':'var(--warn)'});
+function add(){var t=$('tt').value.trim();if(!t){$('tt').focus();return}S.tasks.push({t:t,co:$('tc').value,d:$('td').value,x:false});$('tt').value='';all()}
+$('ta').addEventListener('click',add);
+$('tt').addEventListener('keydown',function(e){if(e.key==='Enter')add()});
+$('plus').addEventListener('click',function(){S.hours[ti]=Math.round((S.hours[ti]+1)*10)/10;all()});
+$('td').value=plus(3);
+cls();all();
+})();
+</script>
+</body>
+</html>
